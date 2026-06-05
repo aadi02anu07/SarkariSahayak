@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Welcome to SarkariSahayak</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .header { background: linear-gradient(135deg, #FF6B35, #F7931E); padding: 32px; text-align: center; }
+  .header h1 { color: #fff; margin: 0; font-size: 28px; }
+  .header p { color: rgba(255,255,255,0.9); margin: 8px 0 0; }
+  .body { padding: 32px; }
+  .body h2 { color: #1a1a2e; margin-top: 0; }
+  .body p { color: #555; line-height: 1.6; }
+  .btn { display: inline-block; background: #FF6B35; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; margin: 16px 0; }
+  .footer { background: #f9f9f9; padding: 16px 32px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #eee; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🇮🇳 SarkariSahayak</h1>
+    <p>Government Scheme Navigator</p>
+  </div>
+  <div class="body">
+    <h2>Welcome, {{name}}! 🎉</h2>
+    <p>You're now part of a platform that helps thousands of Indians discover government schemes they're eligible for.</p>
+    <p>Here's what you can do next:</p>
+    <ul>
+      <li>✅ Complete your eligibility profile to get matched with schemes</li>
+      <li>📋 Browse 500+ central and state government schemes</li>
+      <li>🔔 Get deadline reminders so you never miss an application</li>
+      <li>📁 Store your documents securely in one place</li>
+    </ul>
+    <a href="{{dashboardUrl}}" class="btn">Get Started →</a>
+    <p style="color: #999; font-size: 13px;">If you didn't create this account, you can safely ignore this email.</p>
+  </div>
+  <div class="footer">
+    <p>SarkariSahayak is not affiliated with any government body.</p>
+    <p>© 2026 SarkariSahayak. All rights reserved.</p>
+  </div>
+</div>
+</body>
+</html>

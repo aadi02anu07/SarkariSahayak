@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deadline Reminder — {{schemeName}}</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .header { background: linear-gradient(135deg, #e74c3c, #c0392b); padding: 32px; text-align: center; }
+  .header h1 { color: #fff; margin: 0; font-size: 24px; }
+  .countdown { color: #FFE066; font-size: 40px; font-weight: bold; margin: 8px 0; }
+  .body { padding: 32px; }
+  .scheme-card { background: #fff8f0; border-left: 4px solid #FF6B35; padding: 16px; border-radius: 4px; margin: 16px 0; }
+  .scheme-card h3 { margin: 0 0 8px; color: #1a1a2e; }
+  .scheme-card p { margin: 4px 0; color: #666; font-size: 14px; }
+  .btn { display: inline-block; background: #FF6B35; color: #fff; text-decoration: none; padding: 14px 28px; border-radius: 6px; font-weight: bold; margin: 16px 0; }
+  .footer { background: #f9f9f9; padding: 16px 32px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #eee; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>⏰ Application Deadline Reminder</h1>
+    <div class="countdown">{{daysLeft}} day{{daysLeft !== 1 ? 's' : ''}} left</div>
+  </div>
+  <div class="body">
+    <p>Hi <strong>{{userName}}</strong>,</p>
+    <p>The application deadline for a scheme you saved is approaching:</p>
+    <div class="scheme-card">
+      <h3>{{schemeName}}</h3>
+      <p>📅 Deadline: <strong>{{closeDate}}</strong></p>
+      <p>💰 Benefit: {{benefitAmount}}</p>
+      <p>🏛️ By: {{ministry}}</p>
+    </div>
+    <p>Don't miss out — apply now on the official portal.</p>
+    <a href="{{applyUrl}}" class="btn">Apply Now →</a>
+    <p style="color: #999; font-size: 13px;">You can manage your notifications in your <a href="{{preferencesUrl}}">account settings</a>.</p>
+  </div>
+  <div class="footer">
+    <p>SarkariSahayak is not affiliated with any government body. Always verify on the official portal.</p>
+    <p>© 2026 SarkariSahayak</p>
+  </div>
+</div>
+</body>
+</html>

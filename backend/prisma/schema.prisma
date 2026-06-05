@@ -1,0 +1,429 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────
+// USERS
+// ─────────────────────────────────────────────
+model User {
+  id                String    @id @default(uuid())
+  email             String    @unique
+  passwordHash      String?   @map("password_hash")
+  googleId          String?   @unique @map("google_id")
+  name              String?
+  role              Role      @default(USER)
+  isVerified        Boolean   @default(false) @map("is_verified")
+  isPremium         Boolean   @default(false) @map("is_premium")
+  premiumExpiresAt  DateTime? @map("premium_expires_at")
+  createdAt         DateTime  @default(now()) @map("created_at")
+  updatedAt         DateTime  @updatedAt @map("updated_at")
+
+  profile           UserProfile?
+  savedSchemes      SavedScheme[]
+  documents         Document[]
+  notifications     Notification[]
+  notificationPrefs NotificationPref?
+  payments          Payment[]
+  apiKeys           ApiKey[]
+  webhooks          Webhook[]
+  reviews           SchemeReview[]
+  questions         SchemeQuestion[]
+  answers           SchemeAnswer[]
+  refreshTokens     RefreshToken[]
+  createdSchemes    Scheme[]         @relation("SchemeCreator")
+
+  @@map("users")
+}
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+// ─────────────────────────────────────────────
+// USER PROFILES (eligibility data)
+// ─────────────────────────────────────────────
+model UserProfile {
+  id            String      @id @default(uuid())
+  userId        String      @unique @map("user_id")
+  state         String?
+  category      Category?
+  age           Int?
+  gender        Gender?
+  occupation    Occupation?
+  annualIncome  Int?        @map("annual_income")
+  education     Education?
+  isDisabled    Boolean     @default(false) @map("is_disabled")
+  disabilityPct Int?        @map("disability_pct")
+  ownsLand      Boolean?    @map("owns_land")
+  landAcres     Decimal?    @db.Decimal(10, 2) @map("land_acres")
+  hasBankAcct   Boolean     @default(true) @map("has_bank_acct")
+  isBpl         Boolean     @default(false) @map("is_bpl")
+  familySize    Int?        @map("family_size")
+  profileScore  Int         @default(0) @map("profile_score")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+enum Category {
+  GENERAL
+  OBC
+  SC
+  ST
+  EWS
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+enum Occupation {
+  FARMER
+  STUDENT
+  BUSINESS
+  LABOURER
+  GOVT_EMPLOYEE
+  OTHER
+}
+
+enum Education {
+  BELOW_10
+  TENTH
+  TWELFTH
+  GRADUATE
+  POSTGRADUATE
+  DOCTORATE
+}
+
+// ─────────────────────────────────────────────
+// SCHEMES
+// ─────────────────────────────────────────────
+model Scheme {
+  id              String       @id @default(uuid())
+  name            String       @db.VarChar(500)
+  nameHindi       String?      @db.VarChar(500) @map("name_hindi")
+  slug            String       @unique @db.VarChar(255)
+  description     String?      @db.Text
+  ministry        String?      @db.VarChar(255)
+  isCentral       Boolean      @default(true) @map("is_central")
+  state           String?      @db.VarChar(100)
+  benefitType     BenefitType  @map("benefit_type")
+  benefitAmount   String?      @db.VarChar(255) @map("benefit_amount")
+  eligibilityJson Json         @map("eligibility_json")
+  documentsNeeded String[]     @map("documents_needed")
+  applyUrl        String?      @db.VarChar(1000) @map("apply_url")
+  openDate        DateTime?    @map("open_date")
+  closeDate       DateTime?    @map("close_date")
+  isRolling       Boolean      @default(false) @map("is_rolling")
+  processingDays  Int?         @map("processing_days")
+  tags            String[]
+  status          SchemeStatus @default(ACTIVE)
+  viewCount       Int          @default(0) @map("view_count")
+  lastVerified    DateTime?    @map("last_verified")
+  createdBy       String?      @map("created_by")
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  creator         User?        @relation("SchemeCreator", fields: [createdBy], references: [id])
+  savedBy         SavedScheme[]
+  notifications   Notification[]
+  payments        Payment[]
+  reviews         SchemeReview[]
+  questions       SchemeQuestion[]
+
+  @@index([status])
+  @@index([state])
+  @@map("schemes")
+}
+
+enum BenefitType {
+  CASH
+  LOAN
+  SUBSIDY
+  SCHOLARSHIP
+  INSURANCE
+  OTHER
+}
+
+enum SchemeStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  EXPIRED
+  UPCOMING
+  NEEDS_VERIFICATION
+}
+
+// ─────────────────────────────────────────────
+// SAVED SCHEMES (application tracker)
+// ─────────────────────────────────────────────
+model SavedScheme {
+  id        String            @id @default(uuid())
+  userId    String            @map("user_id")
+  schemeId  String            @map("scheme_id")
+  status    ApplicationStatus @default(SAVED)
+  notes     String?           @db.Text
+  savedAt   DateTime          @default(now()) @map("saved_at")
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheme    Scheme            @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, schemeId])
+  @@map("saved_schemes")
+}
+
+enum ApplicationStatus {
+  SAVED
+  INTERESTED
+  APPLIED
+  DOCS_SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// ─────────────────────────────────────────────
+// DOCUMENTS
+// ─────────────────────────────────────────────
+model Document {
+  id            String       @id @default(uuid())
+  userId        String       @map("user_id")
+  type          DocumentType
+  fileUrl       String       @db.VarChar(1000) @map("file_url")
+  cloudinaryId  String       @db.VarChar(500) @map("cloudinary_id")
+  originalName  String       @db.VarChar(500) @map("original_name")
+  fileSize      Int?         @map("file_size")
+  expiresAt     DateTime?    @map("expires_at")
+  uploadedAt    DateTime     @default(now()) @map("uploaded_at")
+
+  user          User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("documents")
+}
+
+enum DocumentType {
+  AADHAAR
+  INCOME_CERT
+  CASTE_CERT
+  MARKSHEET
+  PASSBOOK
+  DISABILITY_CERT
+  PAN
+  DOMICILE
+  PHOTO
+  OTHER
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATIONS
+// ─────────────────────────────────────────────
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String           @map("user_id")
+  type      NotificationType
+  title     String           @db.VarChar(500)
+  message   String           @db.Text
+  schemeId  String?          @map("scheme_id")
+  isRead    Boolean          @default(false) @map("is_read")
+  sentVia   String[]         @map("sent_via")
+  createdAt DateTime         @default(now()) @map("created_at")
+
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheme    Scheme?          @relation(fields: [schemeId], references: [id])
+
+  @@index([userId, isRead, createdAt(sort: Desc)])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  DEADLINE_REMINDER
+  NEW_SCHEME
+  SCHEME_REOPENED
+  WEEKLY_DIGEST
+  SYSTEM
+}
+
+// ─────────────────────────────────────────────
+// NOTIFICATION PREFERENCES
+// ─────────────────────────────────────────────
+model NotificationPref {
+  userId            String  @id @map("user_id")
+  deadlineReminder  Boolean @default(true) @map("deadline_reminder")
+  newSchemeAlerts   Boolean @default(true) @map("new_scheme_alerts")
+  weeklyDigest      Boolean @default(true) @map("weekly_digest")
+  schemeReopened    Boolean @default(true) @map("scheme_reopened")
+  emailEnabled      Boolean @default(true) @map("email_enabled")
+  inAppEnabled      Boolean @default(true) @map("in_app_enabled")
+
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_prefs")
+}
+
+// ─────────────────────────────────────────────
+// PAYMENTS
+// ─────────────────────────────────────────────
+model Payment {
+  id                  String        @id @default(uuid())
+  userId              String        @map("user_id")
+  razorpayOrderId     String?       @unique @map("razorpay_order_id") @db.VarChar(255)
+  razorpayPaymentId   String?       @map("razorpay_payment_id") @db.VarChar(255)
+  amount              Int
+  currency            String        @default("INR") @db.VarChar(10)
+  type                PaymentType
+  status              PaymentStatus @default(PENDING)
+  schemeId            String?       @map("scheme_id")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  paidAt              DateTime?     @map("paid_at")
+
+  user                User          @relation(fields: [userId], references: [id])
+  scheme              Scheme?       @relation(fields: [schemeId], references: [id])
+
+  @@map("payments")
+}
+
+enum PaymentType {
+  PREMIUM_MONTHLY
+  PREMIUM_ANNUAL
+  ASSISTED_APPLY
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+// ─────────────────────────────────────────────
+// API KEYS
+// ─────────────────────────────────────────────
+model ApiKey {
+  id          String    @id @default(uuid())
+  userId      String    @map("user_id")
+  keyHash     String    @unique @map("key_hash") @db.VarChar(255)
+  keyPrefix   String?   @map("key_prefix") @db.VarChar(10)
+  name        String?   @db.VarChar(255)
+  tier        ApiTier   @default(FREE)
+  dailyLimit  Int       @default(100) @map("daily_limit")
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  lastUsed    DateTime? @map("last_used")
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  usage       ApiUsage[]
+
+  @@map("api_keys")
+}
+
+enum ApiTier {
+  FREE
+  PAID
+}
+
+model ApiUsage {
+  apiKeyId  String   @map("api_key_id")
+  date      DateTime @db.Date
+  count     Int      @default(0)
+
+  apiKey    ApiKey   @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+
+  @@id([apiKeyId, date])
+  @@map("api_usage")
+}
+
+// ─────────────────────────────────────────────
+// WEBHOOKS
+// ─────────────────────────────────────────────
+model Webhook {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  url       String   @db.VarChar(1000)
+  events    String[]
+  secret    String?  @db.VarChar(255)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("webhooks")
+}
+
+// ─────────────────────────────────────────────
+// SCHEME REVIEWS
+// ─────────────────────────────────────────────
+model SchemeReview {
+  id          String   @id @default(uuid())
+  userId      String   @map("user_id")
+  schemeId    String   @map("scheme_id")
+  rating      Int      @db.SmallInt
+  body        String?  @db.Text
+  isVerified  Boolean  @default(false) @map("is_verified")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  scheme      Scheme   @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, schemeId])
+  @@map("scheme_reviews")
+}
+
+// ─────────────────────────────────────────────
+// SCHEME Q&A
+// ─────────────────────────────────────────────
+model SchemeQuestion {
+  id        String         @id @default(uuid())
+  schemeId  String         @map("scheme_id")
+  userId    String         @map("user_id")
+  question  String         @db.Text
+  upvotes   Int            @default(0)
+  createdAt DateTime       @default(now()) @map("created_at")
+
+  scheme    Scheme         @relation(fields: [schemeId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id])
+  answers   SchemeAnswer[]
+
+  @@map("scheme_questions")
+}
+
+model SchemeAnswer {
+  id          String         @id @default(uuid())
+  questionId  String         @map("question_id")
+  userId      String         @map("user_id")
+  answer      String         @db.Text
+  upvotes     Int            @default(0)
+  isAccepted  Boolean        @default(false) @map("is_accepted")
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  question    SchemeQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  user        User           @relation(fields: [userId], references: [id])
+
+  @@map("scheme_answers")
+}
+
+// ─────────────────────────────────────────────
+// REFRESH TOKENS
+// ─────────────────────────────────────────────
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tokenHash String   @map("token_hash") @db.VarChar(255)
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Verify Your Email — SarkariSahayak</title>
+<style>
+  body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 0; }
+  .container { max-width: 600px; margin: 40px auto; background: #fff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+  .header { background: linear-gradient(135deg, #FF6B35, #F7931E); padding: 32px; text-align: center; }
+  .header h1 { color: #fff; margin: 0; font-size: 24px; }
+  .body { padding: 32px; text-align: center; }
+  .otp { font-size: 48px; font-weight: bold; letter-spacing: 12px; color: #FF6B35; margin: 24px 0; font-family: monospace; }
+  .expiry { color: #999; font-size: 14px; }
+  .footer { background: #f9f9f9; padding: 16px 32px; text-align: center; color: #999; font-size: 12px; border-top: 1px solid #eee; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🔐 Verify Your Email</h1>
+  </div>
+  <div class="body">
+    <p>Hi <strong>{{name}}</strong>, enter this OTP to verify your email address:</p>
+    <div class="otp">{{otp}}</div>
+    <p class="expiry">This OTP expires in <strong>10 minutes</strong>.</p>
+    <p style="color: #999; font-size: 13px;">If you didn't request this, ignore this email.</p>
+  </div>
+  <div class="footer">
+    <p>© 2026 SarkariSahayak</p>
+  </div>
+</div>
+</body>
+</html>
